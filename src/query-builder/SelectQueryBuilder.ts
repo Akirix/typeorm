@@ -690,6 +690,7 @@ export class SelectQueryBuilder<Entity> extends QueryBuilder<Entity> implements 
         const condition = this.computeWhereParameter(where);
         if (condition)
             this.expressionMap.wheres = [{ type: "simple", condition: condition }];
+        this.fixParameters();
         if (parameters)
             this.setParameters(parameters);
         return this;
@@ -701,6 +702,7 @@ export class SelectQueryBuilder<Entity> extends QueryBuilder<Entity> implements 
      */
     andWhere(where: string|Brackets|((qb: this) => string), parameters?: ObjectLiteral): this {
         this.expressionMap.wheres.push({ type: "and", condition: this.computeWhereParameter(where) });
+        this.fixParameters();
         if (parameters) this.setParameters(parameters);
         return this;
     }
@@ -711,6 +713,7 @@ export class SelectQueryBuilder<Entity> extends QueryBuilder<Entity> implements 
      */
     orWhere(where: Brackets|string|((qb: this) => string), parameters?: ObjectLiteral): this {
         this.expressionMap.wheres.push({ type: "or", condition: this.computeWhereParameter(where) });
+        this.fixParameters();
         if (parameters) this.setParameters(parameters);
         return this;
     }

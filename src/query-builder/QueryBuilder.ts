@@ -804,26 +804,31 @@ export abstract class QueryBuilder<Entity> {
             if (andConditions.length > 1)
                 return andConditions.map(where => "(" + where + ")").join(" OR ");
 
-            // Magic hack (By Alexander Reid)
-            if (!!this.expressionMap.nativeParameters) {
-                if (this.connection.driver instanceof AbstractSqliteDriver) {
-                    Object.keys(this.expressionMap.nativeParameters).forEach( ( key ) => {
-                        if (typeof this.expressionMap.nativeParameters[key] === "object") {
-                            try {
-                                this.expressionMap.nativeParameters[key] = this.expressionMap.nativeParameters[key].toDate();
-                            } catch (e) {}
-                            try {
-                                this.expressionMap.nativeParameters[key] = this.expressionMap.nativeParameters[key].toISOString(); 
-                            } catch (e) {}
-                        }
-                    } );
-                }
-            }
-
             return andConditions.join("");
         }
 
         return "";
+    }
+
+    /**
+     * Magic hack by Alexander Reid (fix dates in native parameters for sqlite real quick)
+     */
+    public fixParameters() {
+        if (!!this.expressionMap.nativeParameters) {
+            if (this.connection.driver instanceof AbstractSqliteDriver) {
+                Object.keys(this.expressionMap.nativeParameters).forEach( ( key ) => {
+                    if (typeof this.expressionMap.nativeParameters[key] === "object") {
+                        try {
+                            this.expressionMap.nativeParameters[key] = this.expressionMap.nativeParameters[key].toDate();
+                        } catch (e) {}
+                        try {
+                            this.expressionMap.nativeParameters[key] = this.expressionMap.nativeParameters[key].toISOString(); 
+                        } catch (e) {}
+                    }
+                } );
+            }
+        }
+        console.dir( { "NATIVE": this.expressionMap.nativeParameters } );
     }
 
     /**
