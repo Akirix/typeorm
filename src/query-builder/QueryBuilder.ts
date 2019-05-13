@@ -20,6 +20,8 @@ import {EntitySchema} from "../";
 import {FindOperator} from "../find-options/FindOperator";
 import {In} from "../find-options/operator/In";
 
+import {AbstractSqliteDriver} from "../driver/sqlite-abstract/AbstractSqliteDriver";
+
 // todo: completely cover query builder with tests
 // todo: entityOrProperty can be target name. implement proper behaviour if it is.
 // todo: check in persistment if id exist on object and throw exception (can be in partial selection?)
@@ -801,6 +803,22 @@ export abstract class QueryBuilder<Entity> {
 
             if (andConditions.length > 1)
                 return andConditions.map(where => "(" + where + ")").join(" OR ");
+
+            // Magic hack (By Alexander Reid)
+            if (!!this.expressionMap.nativeParameters) {
+                if (this.connection.driver instanceof AbstractSqliteDriver) {
+                    Object.keys(this.expressionMap.nativeParameters).forEach( ( key ) => {
+                        if (typeof this.expressionMap.nativeParameters[key] === "object") {
+                            try {
+                                this.expressionMap.nativeParameters[key] = this.expressionMap.nativeParameters[key].toDate();
+                            } catch (e) {}
+                            try {
+                                this.expressionMap.nativeParameters[key] = this.expressionMap.nativeParameters[key].toISOString(); 
+                            } catch (e) {}
+                        }
+                    } );
+                }
+            }
 
             return andConditions.join("");
         }
